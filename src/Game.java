@@ -25,7 +25,19 @@ public class Game {
         System.out.println("Enter your hero name: ");
         String name = sc.nextLine().trim();
 
-        Hero player = HeroFactory.createHero(type, name);
+        Hero player = new HeroBuilder()
+                .setName(name)
+                .setHp(type.equalsIgnoreCase("warrior") ? 130 : 100)
+                .setMana(type.equalsIgnoreCase("mage") ? 100 : 40)
+                .setStrength(type.equalsIgnoreCase("warrior") ? 9 : 4)
+                .setDexterity(type.equalsIgnoreCase("archer") ? 9 : 5)
+                .setIntelligence(type.equalsIgnoreCase("mage") ? 13 : 5)
+                .setStrategy(type.equalsIgnoreCase("mage") ? new MagicAttack() :
+                        type.equalsIgnoreCase("archer") ? new RangedAttack("Bow") :
+                                new MeleeAttack())
+                .build();
+
+
         Hero bot = HeroFactory.createRandomHero("Bot");
 
         player.registerObserver(announcer);
@@ -33,7 +45,11 @@ public class Game {
         player.registerObserver(logger);
         bot.registerObserver(logger);
 
-        // каждому свой стартовый предмет
+        player = new FireAuraDecorator(player);
+        bot = new ShieldDecorator(bot);
+
+
+
         player.addToInventory("Health Potion", 1);
         bot.addToInventory("Health Potion", 1);
 
@@ -61,11 +77,9 @@ public class Game {
 
             if (!bot.isAlive() || !player.isAlive()) break;
 
-            // === Ход бота ===
             System.out.println("\n--- Bot’s turn ---");
             botTurn(bot, player);
 
-            // восстановление маны
             player.restoreMana(5);
             bot.restoreMana(5);
 
